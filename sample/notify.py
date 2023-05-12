@@ -127,17 +127,17 @@ def bark(title: str, content: str) -> None:
         "BARK_SOUND": "sound",
         "BARK_ICON": "icon",
     }
-    params = ""
-    for pair in filter(
-        lambda pairs: pairs[0].startswith("BARK_")
-        and pairs[0] != "BARK_PUSH"
-        and pairs[1]
-        and bark_params.get(pairs[0]),
-        push_config.items(),
+    if params := "".join(
+        f"{bark_params.get(pair[0])}={pair[1]}&"
+        for pair in filter(
+            lambda pairs: pairs[0].startswith("BARK_")
+            and pairs[0] != "BARK_PUSH"
+            and pairs[1]
+            and bark_params.get(pairs[0]),
+            push_config.items(),
+        )
     ):
-        params += f"{bark_params.get(pair[0])}={pair[1]}&"
-    if params:
-        url = url + "?" + params.rstrip("&")
+        url = f"{url}?" + params.rstrip("&")
     response = requests.get(url).json()
 
     if response["code"] == 200:
@@ -164,8 +164,7 @@ def dingding_bot(title: str, content: str) -> None:
 
     timestamp = str(round(time.time() * 1000))
     secret_enc = push_config.get("DD_BOT_SECRET").encode("utf-8")
-    string_to_sign = "{}\n{}".format(
-        timestamp, push_config.get("DD_BOT_SECRET"))
+    string_to_sign = f'{timestamp}\n{push_config.get("DD_BOT_SECRET")}'
     string_to_sign_enc = string_to_sign.encode("utf-8")
     hmac_code = hmac.new(
         secret_enc, string_to_sign_enc, digestmod=hashlib.sha256
@@ -529,9 +528,7 @@ def telegram_bot(title: str, content: str) -> None:
                 + "@"
                 + push_config.get("TG_PROXY_HOST")
             )
-        proxyStr = "http://{}:{}".format(
-            push_config.get("TG_PROXY_HOST"), push_config.get("TG_PROXY_PORT")
-        )
+        proxyStr = f'http://{push_config.get("TG_PROXY_HOST")}:{push_config.get("TG_PROXY_PORT")}'
         proxies = {"http": proxyStr, "https": proxyStr}
     response = requests.post(
         url=url, headers=headers, params=payload, proxies=proxies
@@ -656,9 +653,7 @@ def send(title: str, content: str) -> None:
         print(f"{title} 推送内容为空！")
         return
 
-    # 根据标题跳过一些消息推送，环境变量：SKIP_PUSH_TITLE 用回车分隔
-    skipTitle = os.getenv("SKIP_PUSH_TITLE")
-    if skipTitle:
+    if skipTitle := os.getenv("SKIP_PUSH_TITLE"):
         if (title in re.split("\n", skipTitle)):
             print(f"{title} 在SKIP_PUSH_TITLE环境变量内，跳过推送！")
             return
