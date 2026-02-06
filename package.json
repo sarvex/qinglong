@@ -152,7 +152,7 @@
     "umi-request": "^1.4.0",
     "vh-check": "^2.0.5",
     "virtualizedtableforantd4": "1.3.0",
-    "webpack": "^5.70.0",
+    "webpack": "^5.104.1",
     "yorkie": "^2.0.0"
   }
 }
